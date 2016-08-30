@@ -7,7 +7,8 @@ SETS:
 	PLRGSHP1,etaGSHP1H,vGSHP1H,uGSHP1,FUELGSHP1,GENGSHP1H,
 	etaSolar1,phi,vSolar1,GENSolar1H,
 	etaPV1,vPV1,GENPV1,
-	etaWT1,vWT1,GENWT1;
+	etaWT1,vWT1,GENWT1,
+	inESS,outESS,storedESS1;
 ENDSETS
 DATA:
 	SEG_ALL=m1t1	m1t2	m1t3	m1t4	m1t5	m1t6	m2t1	m2t2	m2t3	m2t4	m2t5	m2t6	m3t1	m3t2	m3t3	m3t4	m3t5	m3t6	m4t1	m4t2	m4t3	m4t4	m4t5	m4t6	m5t1	m5t2	m5t3	m5t4	m5t5	m5t6	m6t1	m6t2	m6t3	m6t4	m6t5	m6t6	m7t1	m7t2	m7t3	m7t4	m7t5	m7t6	m8t1	m8t2	m8t3	m8t4	m8t5	m8t6	m9t1	m9t2	m9t3	m9t4	m9t5	m9t6	m10t1	m10t2	m10t3	m10t4	m10t5	m10t6	m11t1	m11t2	m11t3	m11t4	m11t5	m11t6	m12t1	m12t2	m12t3	m12t4	m12t5	m12t6;
@@ -87,7 +88,6 @@ CiCHP1=0; !CiCHP1=FCHP1*1000*CiuCHP; !CiCHP1 설치비용 = 정격발전용량(M
 CiHOB1=0; !CiHOB1= FHOB1H*1000*CiuHOB;!CiHOB1 설치비용 = 정격온열용량(MW) * kW당 비용 * 1000;
 !CiINC1=0;
 CiuESS1=700000000;!원/MWh;!"비상(예비)전원용 ESS 가이드라인"산업통상자원부 보도참고자료 2016.2.24;
-CiESS1=FESS1*CiuESS1;!CiESS1 설치비용=ESS용량(MWh)*MWh당 비용;
 
 !탄소배출계수;
 LNGCO2=0.2;!ton/MWh;!56.1ton/TJ=0.2ton/MWh;
@@ -186,11 +186,12 @@ CiWT1= FWT*CiuWT*1000;!CiWT1 설치비용 = WT전체정격용량(MW) * kW당 비
 @FOR(SEG_ALL(J):GENWT1(J)=Ts(J)*vWT1(J)); !1년간 WT 발전량(MWh);
 COSTWT1=CiWT1;!@SUM(SEG_ALL(J):CiWT1+(-vCelecWT*GENWT1(J))*@FPA(r,n)); !1년간 WT 순현재가치(NPV); !n 수명 ; !n년동안 매년 발전량이 동일하다고 가정;!(1-(1+r)^(-n))*(1+r)/r;
 
-!태양광 성능특성 모델링;
-!APV 태양광 설치면적(m2);!최적화대상변수 or 상수로 사용가능.;
-@FOR(SEG_ALL(J):@BIN(etaPV1(J))); !etaPV1s1t1 해당세그먼트 ON/OFF(0 OR 1);
-phipv=0.12;!발전효율 phipv 12%;
-@FOR(SEG_ALL(J):vPV1(J)=etaPV1(J)*IS(J)*0.278*phiPV*APV1/1000);!vPV1(J) 해당세그먼트 1시간평균발전부하(MWh);!계수MJ/m2->kWh/m2=0.278;
-CiPV1= APV1*CiuPV*1*0.12;!CiPV1 설치비용 = 설치면적(m2) * kW당 비용(원/kW) *정격일사조건(1kW/m2)*발전효율;
-@FOR(SEG_ALL(J):GENPV1(J)=Ts(J)*vPV1(J)); !해당세그먼트 PV 발전량(MWh);
-COSTPV1=CiPV1;!@SUM(SEG_ALL(J):CiPV1+(-vCelecPV*GENPV1(J))*@FPA(r,n)); !1년간 PV 순현재가치(NPV); !n 수명 ; !n년동안 매년 발전량이 동일하다고 가정;!(1-(1+r)^(-n))*(1+r)/r;
+!ESS 성능특성 모델링;
+effCharge=0.7;!전력저장효율 70%;
+effDischarge=0.7;!저장전력재사용효율 70%;
+@FOR(SEG_ALL(J):inESS(J)<GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)+outESS(J)-Ts(J)*POW(J));!잉여생산량 중 일부를 ESS에 저장;
+@FOR(SEG_ALL(J):storedESS1(J)>outESS(J)/effDischarge);!출력제한조건;
+@FOR(SEG_ALL(J):FESS1-storedESS1(J)>effCharge*inESS(J));!입력제한조건;
+@FOR(SEG_ALL(J):storedESS1(J)=storedESS1(J)+effCharge*inESS(J)-outESS(J)/effDischarge);!effDischarge 해당세그먼트 전력저장량;
+CiESS1=FESS1*CiuESS1;!CiESS1 설치비용=ESS용량(MWh)*MWh당 비용;
+COSTESS1=CiESS1;!ESS 순현재가치(NPV); !n 수명 ;
