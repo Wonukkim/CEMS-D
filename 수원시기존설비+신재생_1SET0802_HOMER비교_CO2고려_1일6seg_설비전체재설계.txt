@@ -8,7 +8,7 @@ SETS:
 	etaSolar1,phi,vSolar1,GENSolar1H,
 	etaPV1,vPV1,GENPV1,
 	etaWT1,vWT1,GENWT1,
-	inESS,outESS,storedESS1;
+	inESS1,outESS1,storedESS1;
 ENDSETS
 DATA:
 	SEG_ALL=m1t1	m1t2	m1t3	m1t4	m1t5	m1t6	m2t1	m2t2	m2t3	m2t4	m2t5	m2t6	m3t1	m3t2	m3t3	m3t4	m3t5	m3t6	m4t1	m4t2	m4t3	m4t4	m4t5	m4t6	m5t1	m5t2	m5t3	m5t4	m5t5	m5t6	m6t1	m6t2	m6t3	m6t4	m6t5	m6t6	m7t1	m7t2	m7t3	m7t4	m7t5	m7t6	m8t1	m8t2	m8t3	m8t4	m8t5	m8t6	m9t1	m9t2	m9t3	m9t4	m9t5	m9t6	m10t1	m10t2	m10t3	m10t4	m10t5	m10t6	m11t1	m11t2	m11t3	m11t4	m11t5	m11t6	m12t1	m12t2	m12t3	m12t4	m12t5	m12t6;
@@ -51,15 +51,15 @@ CO2EMIT=@SUM(SEG_ALL(J):LNGCO2*(Ts(J)*BUYGAS(J)+FUELCHP1(J)+FUELFC1(J)+FUELHOB1(
 HEAT_ANNUAL=@SUM(SEG_ALL(J):GENCHP1H(J)+GENHOB1H(J)+GENFC1H(J)+GENGSHP1H(J)+GENSolar1H(J)+0.8*Ts(J)*BUYGAS(J));!GENINC1H(J)+BUYHW(J)+;!열생산량;
 HEAT_ANNUAL>4699695.104;!0.8*가스+난방열-소각열 사용량(MWh);!5674386.759: 2013년 0.8*수원시도시가스공급량+지역난방공사수원지사열판매량-소각열=>에너지설비투입량제외(공공데이터포털);
 HEAT_ANNUAL<2*4699695.104;
-POW_ANNUAL=@SUM(SEG_ALL(J):GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)-inESS(J)+outESS(J));!-FUELINC1(J);!전력생산량;
+POW_ANNUAL=@SUM(SEG_ALL(J):GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)-inESS1(J)+outESS1(J));!-FUELINC1(J);!전력생산량;
 POW_ANNUAL>5042147;!전력사용량(MWh);!5042147: 2013년 수원 용도별 전력사용량(공공데이터포털);
 POW_ANNUAL<2*5042147;
 
 !세그먼트별사용량;
 @FOR(SEG_ALL(J):GENCHP1H(J)+GENHOB1H(J)+GENFC1H(J)+GENGSHP1H(J)+GENSolar1H(J)+0.8*Ts(J)*BUYGAS(J)>Ts(J)*HEAT(J));!+GENINC1H(J)+BUYHW(J);
 @FOR(SEG_ALL(J):GENCHP1H(J)+GENHOB1H(J)+GENFC1H(J)+GENGSHP1H(J)+GENSolar1H(J)+0.8*Ts(J)*BUYGAS(J)<Ts(J)*2*HEAT(J));!+GENINC1H(J)+BUYHW(J);
-@FOR(SEG_ALL(J):GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)-inESS(J)+outESS(J)>Ts(J)*POW(J));!-FUELINC1(J);
-@FOR(SEG_ALL(J):GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)-inESS(J)+outESS(J)<Ts(J)*2*POW(J));!-FUELINC1(J);
+@FOR(SEG_ALL(J):GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)-inESS1(J)+outESS1(J)>Ts(J)*POW(J));!-FUELINC1(J);
+@FOR(SEG_ALL(J):GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)-inESS1(J)+outESS1(J)<Ts(J)*2*POW(J));!-FUELINC1(J);
 
 !경제성관련정보;
 r=0.032;!할인율,이자율 국토해양부의 생애주기비용분석 및 평가요령(2008) 평균값;
@@ -189,11 +189,11 @@ COSTWT1=CiWT1;!@SUM(SEG_ALL(J):CiWT1+(-vCelecWT*GENWT1(J))*@FPA(r,n)); !1년간 
 !ESS 성능특성 모델링;
 effCharge=0.7;!전력저장효율 70%;
 effDischarge=0.7;!저장전력재사용효율 70%;
-@FOR(SEG_ALL(J):inESS(J)<GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)+outESS(J)-Ts(J)*POW(J));!잉여생산량 중 일부를 ESS에 저장;
+@FOR(SEG_ALL(J):inESS1(J)<GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)+outESS1(J)-Ts(J)*POW(J));!잉여생산량 중 일부를 ESS에 저장;
 storedESS1(1)=0;
-outESS(1)=0;
-@FOR(SEG_ALL(J)|J #GT# 1:storedESS1(J)=storedESS1(J-1)+effCharge*inESS(J)-outESS(J)/effDischarge);!effDischarge 해당세그먼트 전력저장량;
-@FOR(SEG_ALL(J):storedESS1(J)>=outESS(J)/effDischarge);!출력제한조건;
-@FOR(SEG_ALL(J):FESS1-storedESS1(J)>effCharge*inESS(J));!입력제한조건;
+outESS1(1)=0;
+@FOR(SEG_ALL(J)|J #GT# 1:storedESS1(J)=storedESS1(J-1)+effCharge*inESS1(J)-outESS1(J)/effDischarge);!effDischarge 해당세그먼트 전력저장량;
+@FOR(SEG_ALL(J):storedESS1(J)>=outESS1(J)/effDischarge);!출력제한조건;
+@FOR(SEG_ALL(J):FESS1-storedESS1(J)>effCharge*inESS1(J));!입력제한조건;
 CiESS1=FESS1*CiuESS1;!CiESS1 설치비용=ESS용량(MWh)*MWh당 비용;
 COSTESS1=CiESS1;!ESS 순현재가치(NPV); !n 수명 ;
