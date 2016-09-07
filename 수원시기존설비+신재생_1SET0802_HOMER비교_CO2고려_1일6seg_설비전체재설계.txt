@@ -190,7 +190,7 @@ COSTWT1=CiWT1;!@SUM(SEG_ALL(J):CiWT1+(-vCelecWT*GENWT1(J))*@FPA(r,n)); !1년간 
 effCharge=0.7;!전력저장효율 70%;
 effDischarge=0.7;!저장전력재사용효율 70%;
 @FOR(SEG_ALL(J):inESS(J)<GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)+outESS(J)-Ts(J)*POW(J));!잉여생산량 중 일부를 ESS에 저장;
-storedESS(1)=0;
+storedESS1(1)=0;
 outESS(1)=0;
 @FOR(SEG_ALL(J)|J #GT# 1:storedESS1(J)=storedESS1(J-1)+effCharge*inESS(J)-outESS(J)/effDischarge);!effDischarge 해당세그먼트 전력저장량;
 @FOR(SEG_ALL(J):storedESS1(J)>=outESS(J)/effDischarge);!출력제한조건;
