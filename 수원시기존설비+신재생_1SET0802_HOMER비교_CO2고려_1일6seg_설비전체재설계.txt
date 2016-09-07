@@ -59,7 +59,7 @@ POW_ANNUAL<2*5042147;
 @FOR(SEG_ALL(J):GENCHP1H(J)+GENHOB1H(J)+GENFC1H(J)+GENGSHP1H(J)+GENSolar1H(J)+0.8*Ts(J)*BUYGAS(J)>Ts(J)*HEAT(J));!+GENINC1H(J)+BUYHW(J);
 @FOR(SEG_ALL(J):GENCHP1H(J)+GENHOB1H(J)+GENFC1H(J)+GENGSHP1H(J)+GENSolar1H(J)+0.8*Ts(J)*BUYGAS(J)<Ts(J)*2*HEAT(J));!+GENINC1H(J)+BUYHW(J);
 @FOR(SEG_ALL(J):GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)-inESS(J)+outESS(J)>Ts(J)*POW(J));!-FUELINC1(J);
-@FOR(SEG_ALL(J):GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)<Ts(J)*2*POW(J));!-FUELINC1(J);
+@FOR(SEG_ALL(J):GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)-inESS(J)+outESS(J)<Ts(J)*2*POW(J));!-FUELINC1(J);
 
 !경제성관련정보;
 r=0.032;!할인율,이자율 국토해양부의 생애주기비용분석 및 평가요령(2008) 평균값;
@@ -190,8 +190,10 @@ COSTWT1=CiWT1;!@SUM(SEG_ALL(J):CiWT1+(-vCelecWT*GENWT1(J))*@FPA(r,n)); !1년간 
 effCharge=0.7;!전력저장효율 70%;
 effDischarge=0.7;!저장전력재사용효율 70%;
 @FOR(SEG_ALL(J):inESS(J)<GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)+outESS(J)-Ts(J)*POW(J));!잉여생산량 중 일부를 ESS에 저장;
-@FOR(SEG_ALL(J):storedESS1(J)>outESS(J)/effDischarge);!출력제한조건;
+storedESS(1)=0;
+outESS(1)=0;
+@FOR(SEG_ALL(J)|J #GT# 1:storedESS1(J)=storedESS1(J-1)+effCharge*inESS(J)-outESS(J)/effDischarge);!effDischarge 해당세그먼트 전력저장량;
+@FOR(SEG_ALL(J):storedESS1(J)>=outESS(J)/effDischarge);!출력제한조건;
 @FOR(SEG_ALL(J):FESS1-storedESS1(J)>effCharge*inESS(J));!입력제한조건;
-@FOR(SEG_ALL(J):storedESS1(J)=storedESS1(J)+effCharge*inESS(J)-outESS(J)/effDischarge);!effDischarge 해당세그먼트 전력저장량;
 CiESS1=FESS1*CiuESS1;!CiESS1 설치비용=ESS용량(MWh)*MWh당 비용;
 COSTESS1=CiESS1;!ESS 순현재가치(NPV); !n 수명 ;
