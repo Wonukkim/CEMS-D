@@ -141,7 +141,8 @@ COSTHOB1=CiHOB1+(@SUM(SEG_ALL(J):Cgas*FUELHOB1(J)))*@FPA(r,n); !1년간 HOB 순�
 @FOR(SEG_ALL(J):GENFC1E(J)=Ts(J)*vFC1E(J)); !1년간 FC 발전량(MWh);
 @FOR(SEG_ALL(J):GENFC1H(J)=Ts(J)*vFC1H(J)); !1년간 FC 온열생산량(MWh);
 CiFC1= FFC1*1000*CiuFC;!CiFC1 설치비용 = 정격발전용량(MW) * kW당 비용 * 1000;
-COSTFC1=CiFC1+(@SUM(SEG_ALL(J):Cgas*FUELFC1(J)))*@FPA(r,n); !1년간 FC 순현재가치(NPV)vChw*GENFC1H(J)-vCelecFC*GENFC1E(J)+; !n 수명 ; !n년동안 매년 에너지사용량,발전량,열생산량이 동일하다고 가정;!(1-(1+r)^(-n))*(1+r)/r;
+FCFUELSUM=@SUM(SEG_ALL(J):Cgas*FUELFC1(J));
+COSTFC1=CiFC1*@SIGN(FCFUELSUM)+FCFUELSUM*@FPA(r,n); !1년간 FC 순현재가치(NPV)vChw*GENFC1H(J)-vCelecFC*GENFC1E(J)+; !n 수명 ; !n년동안 매년 에너지사용량,발전량,열생산량이 동일하다고 가정;!(1-(1+r)^(-n))*(1+r)/r;
 
 !GSHP 성능특성 모델링;
 @FOR(SEG_ALL(J):@BND(0.5,PLRGSHP1(J),1)); !PLRGSHP1s1t11 해당세그먼트 부분부하율(PLR);
@@ -192,8 +193,9 @@ CiWT1= FWT*CiuWT*1000;!CiWT1 설치비용 = WT전체정격용량(MW) * kW당 비
 COSTWT1=CiWT1;!@SUM(SEG_ALL(J):CiWT1+(-vCelecWT*GENWT1(J))*@FPA(r,n)); !1년간 WT 순현재가치(NPV); !n 수명 ; !n년동안 매년 발전량이 동일하다고 가정;!(1-(1+r)^(-n))*(1+r)/r;
 
 !ESS 성능특성 모델링;
-effCharge=0.9;!전력충전효율 90%;
-effDischarge=0.9;!저장전력방전효율 90%;
+!FESS1<@MIN(SEG_ALL(J):POW(J));!5042147/72;
+effCharge=0.8;!전력충전효율 90%;
+effDischarge=0.8;!저장전력방전효율 90%;
 @FOR(SEG_ALL(J):inESS1(J)<GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)+outESS1(J)-Ts(J)*POW(J));!잉여생산량 중 일부를 ESS에 저장;
 storedESS1(1)=0;
 outESS1(1)=0;
