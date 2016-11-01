@@ -1,13 +1,13 @@
 SETS:
 	SEG_ALL:Ts,T,IS,Vw,POW,HEAT,BUYE,BUYGAS,!BUYHW,;
-	PLRCHP1,etaCHP1,vCHP1E,FPLRCHP1E,uCHP1,vCHP1H,FUELCHP1,GENCHP1E,GENCHP1H,
-	PLRHOB1,etaHOB1,vHOB1,uHOB1,FUELHOB1,GENHOB1H,
+	PLRCHP1,vCHP1E,FPLRCHP1E,uCHP1,vCHP1H,FUELCHP1,GENCHP1E,GENCHP1H,!etaCHP1,;
+	PLRHOB1,vHOB1,uHOB1,FUELHOB1,GENHOB1H,!etaHOB1,;
 	!vINC1,uINC1E,GENINC1H,FUELINC1,;
-	PLRFC1,etaFC1,vFC1E,nvFC1E,nvFC1A,uFC1,vFC1H,FUELFC1,GENFC1E,GENFC1H,
-	PLRGSHP1,etaGSHP1H,vGSHP1H,uGSHP1,FUELGSHP1,GENGSHP1H,
-	etaSolar1,phi,vSolar1,GENSolar1H,
-	etaPV1,vPV1,GENPV1,
-	etaWT1,vWT1,GENWT1,
+	PLRFC1,vFC1E,nvFC1E,nvFC1A,uFC1,vFC1H,FUELFC1,GENFC1E,GENFC1H,!etaFC1,;
+	PLRGSHP1,vGSHP1H,uGSHP1,FUELGSHP1,GENGSHP1H,!etaGSHP1H,;
+	phi,vSolar1,GENSolar1H,!etaSolar1,;
+	vPV1,GENPV1,!etaPV1,;
+	vWT1,GENWT1,!etaWT1,;
 	inESS1,outESS1,storedESS1;
 ENDSETS
 DATA:
@@ -62,9 +62,9 @@ POW_ANNUAL<2*5042147;
 
 !세그먼트별사용량;
 @FOR(SEG_ALL(J):GENCHP1H(J)+GENHOB1H(J)+GENFC1H(J)+GENGSHP1H(J)+GENSolar1H(J)+0.8*Ts(J)*BUYGAS(J)>Ts(J)*HEAT(J));!+GENINC1H(J)+BUYHW(J);
-@FOR(SEG_ALL(J):GENCHP1H(J)+GENHOB1H(J)+GENFC1H(J)+GENGSHP1H(J)+GENSolar1H(J)+0.8*Ts(J)*BUYGAS(J)<Ts(J)*2*HEAT(J));!+GENINC1H(J)+BUYHW(J);
+!@FOR(SEG_ALL(J):GENCHP1H(J)+GENHOB1H(J)+GENFC1H(J)+GENGSHP1H(J)+GENSolar1H(J)+0.8*Ts(J)*BUYGAS(J)<Ts(J)*2*HEAT(J));!+GENINC1H(J)+BUYHW(J);
 @FOR(SEG_ALL(J):GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)-inESS1(J)+outESS1(J)>Ts(J)*POW(J));!-FUELINC1(J);
-@FOR(SEG_ALL(J):GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)-inESS1(J)+outESS1(J)<Ts(J)*2*POW(J));!-FUELINC1(J);
+!@FOR(SEG_ALL(J):GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)-inESS1(J)+outESS1(J)<Ts(J)*2*POW(J));!-FUELINC1(J);
 
 !경제성관련정보;
 r=0.032;!할인율,이자율 국토해양부의 생애주기비용분석 및 평가요령(2008) 평균값;
@@ -102,10 +102,11 @@ ELECO2=0.4517;!ton/MWh;
 !CHP 성능특성 모델링;
 FCHP1=43.2;!43.2MWe;
 nvCHP1E= @SMIN(((0.0005*FCHP1*1000)+23.773)/100,0.41); !정격발전효율계산식(정격발전량함수);
-@FOR(SEG_ALL(J):@BND(0.5,PLRCHP1(J),1)); !PLRCHP1s1t11 해당세그먼트 부분부하율(PLR);
-@FOR(SEG_ALL(J):@BIN(etaCHP1(J))); !etaCHP1(J)=1);!etaCHP1s1t1 해당세그먼트 ON/OFF(0 OR 1);
-@FOR(SEG_ALL(J):vCHP1E(J)=etaCHP1(J)*PLRCHP1(J)*FCHP1);!FCHP1 열병합 정격발전용량(MW),입력변수; !vCHP1s1t1 해당세그먼트 발전부하(MW);
-@FOR(SEG_ALL(J):FPLRCHP1E(J)=1); !부분부하계수(부분부하율함수);
+@FOR(SEG_ALL(J):@SEMIC(0.5,PLRCHP1(J),1)); !PLRCHP1s1t11 해당세그먼트 부분부하율(PLR);
+!@FOR(SEG_ALL(J):@BIN(etaCHP1(J))); !etaCHP1(J)=1);!etaCHP1s1t1 해당세그먼트 ON/OFF(0 OR 1);
+!@FOR(SEG_ALL(J):vCHP1E(J)=etaCHP1(J)*PLRCHP1(J)*FCHP1);!FCHP1 열병합 정격발전용량(MW),입력변수; !vCHP1s1t1 해당세그먼트 발전부하(MW);
+@FOR(SEG_ALL(J):vCHP1E(J)=PLRCHP1(J)*FCHP1);!FCHP1 열병합 정격발전용량(MW),입력변수; !vCHP1s1t1 해당세그먼트 발전부하(MW);
+@FOR(SEG_ALL(J):FPLRCHP1E(J)=@SMIN((0.21529+2.561463*PLRCHP1(J)-3.24613*PLRCHP1(J)^2+1.497306*PLRCHP1(J)^3),1)); !부분부하계수(부분부하율함수);
 @FOR(SEG_ALL(J):uCHP1(J)=vCHP1E(J)/(nvCHP1E*FPLRCHP1E(J))); !uCHP1s1t1 해당세그먼트 가스소비(MW) =발전부하/(정격발전효율*부분부하계수);
 @FOR(SEG_ALL(J):vCHP1H(J)=uCHP1(J)*0.85-vCHP1E(J)); !vCHP1Hs1t1 해당세그먼트 열출력(MW) =가스소비(MW)*전체효율(0.85) - 발전부하;
 @FOR(SEG_ALL(J):FUELCHP1(J)=Ts(J)*uCHP1(J)); !1년간 열병합 에너지사용량(MWh);
@@ -115,9 +116,10 @@ COSTCHP1=CiCHP1+(@SUM(SEG_ALL(J):Cgas*FUELCHP1(J)))*@FPA(r,n); !1년간 열병�
 
 !HOB 성능특성 모델링;
 FHOB1=497;!497MW;
-@FOR(SEG_ALL(J):@BND(0.5,PLRHOB1(J),1)); !PLRHOB1s1t11 해당세그먼트 부분부하율(PLR);
-@FOR(SEG_ALL(J):@BIN(etaHOB1(J))); !etaHOB1s1t1 해당세그먼트 ON/OFF(0 OR 1) etaHOB1(J)=1);
-@FOR(SEG_ALL(J):vHOB1(J)=etaHOB1(J)*PLRHOB1(J)*FHOB1);!FHOB1H HOB 정격온열용량(MW),입력변수;!vHOB1Hs1t1 해당세그먼트 온열부하(MW);
+@FOR(SEG_ALL(J):@SEMIC(0.5,PLRHOB1(J),1)); !PLRHOB1s1t11 해당세그먼트 부분부하율(PLR);
+!@FOR(SEG_ALL(J):@BIN(etaHOB1(J))); !etaHOB1s1t1 해당세그먼트 ON/OFF(0 OR 1) etaHOB1(J)=1);
+!@FOR(SEG_ALL(J):vHOB1(J)=etaHOB1(J)*PLRHOB1(J)*FHOB1);!FHOB1H HOB 정격온열용량(MW),입력변수;!vHOB1Hs1t1 해당세그먼트 온열부하(MW);
+@FOR(SEG_ALL(J):vHOB1(J)=PLRHOB1(J)*FHOB1);!FHOB1H HOB 정격온열용량(MW),입력변수;!vHOB1Hs1t1 해당세그먼트 온열부하(MW);
 @FOR(SEG_ALL(J):uHOB1(J)=vHOB1(J)/0.8);!uFC1s1t1 해당세그먼트 가스소비(MW) =열부하/효율(0.8);
 @FOR(SEG_ALL(J):FUELHOB1(J)=Ts(J)*uHOB1(J)); !1년간 HOB 에너지사용량(MWh);
 @FOR(SEG_ALL(J):GENHOB1H(J)=Ts(J)*vHOB1(J)); !1년간 HOB 온열생산량(MWh);
@@ -130,9 +132,10 @@ COSTHOB1=CiHOB1+(@SUM(SEG_ALL(J):Cgas*FUELHOB1(J)))*@FPA(r,n); !1년간 HOB 순�
 
 !연료전지 성능특성 모델링;
 !FFC1=58.8;!58.8MW 경기그린에너지;
-@FOR(SEG_ALL(J):@BND(0.5,PLRFC1(J),1)); !PLRFC1s1t11 해당세그먼트 부분부하율(PLR);
-@FOR(SEG_ALL(J):@BIN(etaFC1(J))); !etaFC1(J)=1);!etaFC1s1t1 해당세그먼트 ON/OFF(0 OR 1);
-@FOR(SEG_ALL(J):vFC1E(J)=etaFC1(J)*PLRFC1(J)*FFC1);!FFC1 FC 정격발전용량(MW),입력변수; !vFC1s1t1 해당세그먼트 발전부하(MW);
+@FOR(SEG_ALL(J):@SEMIC(0.5,PLRFC1(J),1)); !PLRFC1s1t11 해당세그먼트 부분부하율(PLR);
+!@FOR(SEG_ALL(J):@BIN(etaFC1(J))); !etaFC1(J)=1);!etaFC1s1t1 해당세그먼트 ON/OFF(0 OR 1);
+!@FOR(SEG_ALL(J):vFC1E(J)=etaFC1(J)*PLRFC1(J)*FFC1);!FFC1 FC 정격발전용량(MW),입력변수; !vFC1s1t1 해당세그먼트 발전부하(MW);
+@FOR(SEG_ALL(J):vFC1E(J)=PLRFC1(J)*FFC1);!FFC1 FC 정격발전용량(MW),입력변수; !vFC1s1t1 해당세그먼트 발전부하(MW);
 @FOR(SEG_ALL(J):nvFC1E(J)=@SMIN(-0.0543*PLRFC1(J) + 0.4666,0.43));!발전효율계산식(부분부하율함수);
 @FOR(SEG_ALL(J):nvFC1A(J)=@SMIN(0.5125*PLRFC1(J) + 0.4458,0.9));!전체효율계산식(발전+열;!부분부하율함수);
 @FOR(SEG_ALL(J):uFC1(J)=vFC1E(J)/nvFC1E); !uFC1s1t1 해당세그먼트 가스소비(MW) =발전부하/발전효율;
@@ -140,20 +143,21 @@ COSTHOB1=CiHOB1+(@SUM(SEG_ALL(J):Cgas*FUELHOB1(J)))*@FPA(r,n); !1년간 HOB 순�
 @FOR(SEG_ALL(J):FUELFC1(J)=Ts(J)*uFC1(J)); !1년간 FC 에너지사용량(MWh);
 @FOR(SEG_ALL(J):GENFC1E(J)=Ts(J)*vFC1E(J)); !1년간 FC 발전량(MWh);
 @FOR(SEG_ALL(J):GENFC1H(J)=Ts(J)*vFC1H(J)); !1년간 FC 온열생산량(MWh);
-!FFC1<2*@MAX(SEG_ALL(J):POW(J));!설비크기의 상한제한;
+FFC1<@MAX(SEG_ALL(J):POW(J));!설비크기의 상한제한;
 FCFUELSUM=@SUM(SEG_ALL(J):Cgas*FUELFC1(J));
 CiFC1= @SIGN(FCFUELSUM)*FFC1*1000*CiuFC;!CiFC1 설치비용 = 정격발전용량(MW) * kW당 비용 * 1000;
 COSTFC1=CiFC1+FCFUELSUM*@FPA(r,n); !1년간 FC 순현재가치(NPV)vChw*GENFC1H(J)-vCelecFC*GENFC1E(J)+; !n 수명 ; !n년동안 매년 에너지사용량,발전량,열생산량이 동일하다고 가정;!(1-(1+r)^(-n))*(1+r)/r;
 
 !GSHP 성능특성 모델링;
-@FOR(SEG_ALL(J):@BND(0.5,PLRGSHP1(J),1)); !PLRGSHP1s1t11 해당세그먼트 부분부하율(PLR);
-@FOR(SEG_ALL(J):@BIN(etaGSHP1H(J))); !etaGSHP1s1t1 해당세그먼트 난방ON/OFF(0 OR 1);
+@FOR(SEG_ALL(J):@SEMIC(0.5,PLRGSHP1(J),1)); !PLRGSHP1s1t11 해당세그먼트 부분부하율(PLR);
+!@FOR(SEG_ALL(J):@BIN(etaGSHP1H(J))); !etaGSHP1s1t1 해당세그먼트 난방ON/OFF(0 OR 1);
 !@FOR(SEG_ALL(J):@BIN(zetaGSHP1C(J))); !zetaGSHP1s1t1 해당세그먼트 냉방ON/OFF정보(0 OR 1);
 !@FOR(SEG_ALL(J):etaGSHP1C(J)=zetaGSHP1C(J)*(1-etaGSHP1H(J)));!해당세그먼트 냉방ON/OFF(0 OR 1);!냉난방 둘중하나;
-@FOR(SEG_ALL(J):vGSHP1H(J)=etaGSHP1H(J)*PLRGSHP1(J)*FGSHP1H);!FGSHP1H 지열히트펌프 정격온열용량(MW),입력변수;!FGSHP1C 지열히트펌프 정격냉열용량(MW),입력변수;!vGSHP1H(J) 해당세그먼트 온열부하(MW);
+!@FOR(SEG_ALL(J):vGSHP1H(J)=etaGSHP1H(J)*PLRGSHP1(J)*FGSHP1H);!FGSHP1H 지열히트펌프 정격온열용량(MW),입력변수;!FGSHP1C 지열히트펌프 정격냉열용량(MW),입력변수;!vGSHP1H(J) 해당세그먼트 온열부하(MW);
+@FOR(SEG_ALL(J):vGSHP1H(J)=PLRGSHP1(J)*FGSHP1H);!FGSHP1H 지열히트펌프 정격온열용량(MW),입력변수;!FGSHP1C 지열히트펌프 정격냉열용량(MW),입력변수;!vGSHP1H(J) 해당세그먼트 온열부하(MW);
 !@FOR(SEG_ALL(J):vGSHP1C(J)=etaGSHP1C(J)*PLRGSHP1(J)*FGSHP1C);!vGSHP1H(J) 해당세그먼트 냉열부하(MW);
 @FOR(SEG_ALL(J):uGSHP1(J)=vGSHP1H(J)/3.7);!uFC1s1t1 해당세그먼트 전기소비(MW) =열부하/효율;!uGSHP1(J)=vGSHP1H(J)/3.7 + vGSHP1C(J)/4.11;
-!FGSHP1H<2*@MAX(SEG_ALL(J):HEAT(J));!설비크기의 상한제한;
+FGSHP1H<@MAX(SEG_ALL(J):HEAT(J));!설비크기의 상한제한;
 CiGSHP1= @SIGN(@SUM(SEG_ALL(J):FUELGSHP1(J)))*FGSHP1H*1000*CiuGSHP;!CiGSHP1 설치비용 = 정격온열용량(MW) * kW당 비용 * 1000;
 @FOR(SEG_ALL(J):FUELGSHP1(J)=Ts(J)*uGSHP1(J)); !1년간 GSHP 에너지사용량(MWh);
 @FOR(SEG_ALL(J):GENGSHP1H(J)=Ts(J)*vGSHP1H(J)); !1년간 GSHP 온열생산량(MWh);
@@ -162,28 +166,30 @@ COSTGSHP1=CiGSHP1+(@SUM(SEG_ALL(J):Celec*FUELGSHP1(J)))*@FPA(r,n); !+Ccw*GENGSHP
 
 !태양열평판 성능특성 모델링;
 !ASolar 평판형태양열 설치면적(m2);!최적화대상변수 or 상수로 사용가능.ASolar1=432;
-@FOR(SEG_ALL(J):@BIN(etaSolar1(J))); !etaSolar1s1t1 해당세그먼트 ON/OFF(0 OR 1);
+!@FOR(SEG_ALL(J):@BIN(etaSolar1(J))); !etaSolar1s1t1 해당세그먼트 ON/OFF(0 OR 1);
 @FOR(SEG_ALL(J):phi(J)=@SMAX(@IF(IS(J) #EQ# 0,0,(0.776-14.22*(45-T(J))/(IS(J)*1000)-0.0594*((45-T(J)))^2/(IS(J)*1000))),0));!열생산효율 phi;!(IS(J)*1000)단위:kJ/h.m2;
 !L.M.Ayompe et al. 2011. Validated TRNSYS model for forced circulation solar water heating systems with flat plate and heat pipe evacuated tube collectors;
-@FOR(SEG_ALL(J):vSolar1(J)=etaSolar1(J)*IS(J)*0.278*phi(J)*ASolar1/1000);!vSolar1H(J) 해당세그먼트 1시간평균온열부하(MWh);!계수MJ/m2->kWh/m2=0.278;
-!ASolar1*0.001*0.4<2*@MAX(SEG_ALL(J):HEAT(J));!설비크기의 상한제한;!설치면적(m2)*정격일사조건(1kW/m2)*평균집열효율;
+!@FOR(SEG_ALL(J):vSolar1(J)=etaSolar1(J)*IS(J)*0.278*phi(J)*ASolar1/1000);!vSolar1H(J) 해당세그먼트 1시간평균온열부하(MWh);!계수MJ/m2->kWh/m2=0.278;
+@FOR(SEG_ALL(J):vSolar1(J)=IS(J)*0.278*phi(J)*ASolar1/1000);!vSolar1H(J) 해당세그먼트 1시간평균온열부하(MWh);!계수MJ/m2->kWh/m2=0.278;
+ASolar1*0.001*0.4<@MAX(SEG_ALL(J):HEAT(J));!설비크기의 상한제한;!설치면적(m2)*정격일사조건(1kW/m2)*평균집열효율;
 CiSolar1= @SIGN(@SUM(SEG_ALL(J):GENSolar1H(J)))*ASolar1*CiuSolar;!CiSolar1 설치비용 = 설치면적(m2) * m2당 비용;
 @FOR(SEG_ALL(J):GENSolar1H(J)=Ts(J)*vSolar1(J)); !해당세그먼트 Solar 온열생산량(MWh);
 COSTSolar1=CiSolar1;!@SUM(SEG_ALL(J):CiSolar1+(-vChw*GENSolar1H(J))*@FPA(r,n)); !1년간 Solar 순현재가치(NPV); !n 수명 ; !n년동안 매년 열생산량이 동일하다고 가정;!(1-(1+r)^(-n))*(1+r)/r;
 
 !태양광 성능특성 모델링;
 !APV 태양광 설치면적(m2);!최적화대상변수 or 상수로 사용가능.;
-@FOR(SEG_ALL(J):@BIN(etaPV1(J))); !etaPV1s1t1 해당세그먼트 ON/OFF(0 OR 1);
+!@FOR(SEG_ALL(J):@BIN(etaPV1(J))); !etaPV1s1t1 해당세그먼트 ON/OFF(0 OR 1);
 phipv=0.12;!발전효율 phipv 12%;
-@FOR(SEG_ALL(J):vPV1(J)=etaPV1(J)*IS(J)*0.278*phiPV*APV1/1000);!vPV1(J) 해당세그먼트 1시간평균발전부하(MWh);!계수MJ/m2->kWh/m2=0.278;
-!APV1*0.001*0.12<2*@MAX(SEG_ALL(J):POW(J));!설비크기의 상한제한;!설치면적(m2)*정격일사조건(1kW/m2)*평균발전효율;
+!@FOR(SEG_ALL(J):vPV1(J)=etaPV1(J)*IS(J)*0.278*phiPV*APV1/1000);!vPV1(J) 해당세그먼트 1시간평균발전부하(MWh);!계수MJ/m2->kWh/m2=0.278;
+@FOR(SEG_ALL(J):vPV1(J)=IS(J)*0.278*phiPV*APV1/1000);!vPV1(J) 해당세그먼트 1시간평균발전부하(MWh);!계수MJ/m2->kWh/m2=0.278;
+APV1*0.001*0.12<@MAX(SEG_ALL(J):POW(J));!설비크기의 상한제한;!설치면적(m2)*정격일사조건(1kW/m2)*평균발전효율;
 CiPV1= @SIGN(@SUM(SEG_ALL(J):GENPV1(J)))*APV1*CiuPV*1*0.12;!CiPV1 설치비용 = 설치면적(m2) * kW당 비용(원/kW) *정격일사조건(1kW/m2)*발전효율;
 @FOR(SEG_ALL(J):GENPV1(J)=Ts(J)*vPV1(J)); !해당세그먼트 PV 발전량(MWh);
 COSTPV1=CiPV1;!@SUM(SEG_ALL(J):CiPV1+(-vCelecPV*GENPV1(J))*@FPA(r,n)); !1년간 PV 순현재가치(NPV); !n 수명 ; !n년동안 매년 발전량이 동일하다고 가정;!(1-(1+r)^(-n))*(1+r)/r;
 
 !풍력터빈 성능특성 모델링;
 !FWT 풍력터빈 정격발전부하(MW);!최적화대상변수;!#AND# Vw(J) #LT# 25;
-@FOR(SEG_ALL(J):@BIN(etaWT1(J)));!@IF(Vw(J) #GT# 2,1,0)*@IF(Vw(J) #LT# 25,1,0);
+!@FOR(SEG_ALL(J):@BIN(etaWT1(J)));!@IF(Vw(J) #GT# 2,1,0)*@IF(Vw(J) #LT# 25,1,0);
 !@FOR(SEG_ALL(J):etaWT1(J)=etaWT1(J)*@IF(Vw(J) #GT# 2,1,0)*@IF(Vw(J) #LT# 25,1,0));
 dair=1.225;!공기밀도 dair=1.225 kg/m3;
 AWT=3.14*(2/2)^2;!로터회전면적m2(2m로터직경);
@@ -191,21 +197,22 @@ unitPWT=0.5*dair*AWT*(11^3)*0.35/1000;!개당정격용량kW(정격풍속11m/s에
 @BIN(NWT);
 NWT=FWT*1000/unitPWT;!WT 대수;
 !@FOR(SEG_ALL(J):vWT1(J)=@SMAX(@IF(Vw(J) #GT# 2,1,0)*@IF(Vw(J) #LT# 25,1,0)*etaWT1(J)*NWT*0.5*dair*AWT*(11.923*Vw(J)-15.115)*0.35/1000000,0));!선형화;!vWT1(J) 해당세그먼트 발전부하(MW);!발전계수0.35(에너지플러스WT기본값);
-@FOR(SEG_ALL(J):vWT1(J)=@SMAX(@IF(Vw(J) #GT# 2,1,0)*@IF(Vw(J) #LT# 25,1,0)*etaWT1(J)*NWT*0.5*dair*AWT*Vw(J)^3*0.35/1000000,0));!vWT1(J) 해당세그먼트 발전부하(MW);!발전계수0.35(에너지플러스WT기본값);
-!FWT<2*@MAX(SEG_ALL(J):POW(J));!설비크기의 상한제한;
+!@FOR(SEG_ALL(J):vWT1(J)=@SMAX(@IF(Vw(J) #GT# 2,1,0)*@IF(Vw(J) #LT# 25,1,0)*etaWT1(J)*NWT*0.5*dair*AWT*Vw(J)^3*0.35/1000000,0));!vWT1(J) 해당세그먼트 발전부하(MW);!발전계수0.35(에너지플러스WT기본값);
+@FOR(SEG_ALL(J):vWT1(J)=@SMAX(@IF(Vw(J) #GT# 2,1,0)*@IF(Vw(J) #LT# 25,1,0)*NWT*0.5*dair*AWT*Vw(J)^3*0.35/1000000,0));!vWT1(J) 해당세그먼트 발전부하(MW);!발전계수0.35(에너지플러스WT기본값);
+FWT<@MAX(SEG_ALL(J):POW(J));!설비크기의 상한제한;
 CiWT1= @SIGN(@SUM(SEG_ALL(J):GENWT1(J)))*FWT*CiuWT*1000;!CiWT1 설치비용 = WT전체정격용량(MW) * kW당 비용*1000;
 @FOR(SEG_ALL(J):GENWT1(J)=Ts(J)*vWT1(J)); !1년간 WT 발전량(MWh);
 COSTWT1=CiWT1;!@SUM(SEG_ALL(J):CiWT1+(-vCelecWT*GENWT1(J))*@FPA(r,n)); !1년간 WT 순현재가치(NPV); !n 수명 ; !n년동안 매년 발전량이 동일하다고 가정;!(1-(1+r)^(-n))*(1+r)/r;
 
 !ESS 성능특성 모델링;
-!FESS1<2*@MAX(SEG_ALL(J):POW(J));!5042147/72;!MW;
-effCharge=0.8;!전력충전효율 90%;
-effDischarge=0.8;!저장전력방전효율 90%;
+FESS1<@MAX(SEG_ALL(J):POW(J));!5042147/72;!MW;
+effCharge=0.9;!전력충전효율 90%;
+effDischarge=0.9;!저장전력방전효율 90%;
 @FOR(SEG_ALL(J):inESS1(J)<GENCHP1E(J)+GENFC1E(J)-FUELGSHP1(J)+GENPV1(J)+GENWT1(J)+Ts(J)*BUYE(J)+outESS1(J)-Ts(J)*POW(J));!잉여생산량 중 일부를 ESS에 저장;
 storedESS1(1)=0;
 outESS1(1)=0;
 @FOR(SEG_ALL(J)|J #GT# 1:storedESS1(J)=storedESS1(J-1)+effCharge*inESS1(J)-outESS1(J)/effDischarge);!effDischarge 해당세그먼트 전력저장량;
 @FOR(SEG_ALL(J):storedESS1(J)>=outESS1(J)/effDischarge);!출력제한조건;
-@FOR(SEG_ALL(J):124*FESS1-storedESS1(J)>effCharge*inESS1(J));!입력제한조건;
-CiESS1=@SIGN(@SUM(SEG_ALL(J):outESS1(J)))*124*FESS1*CiuESS1;!CiESS1 설치비용=ESS용량(MWh)*MWh당 비용;
+@FOR(SEG_ALL(J):Ts(J)*FESS1-storedESS1(J)>effCharge*inESS1(J));!입력제한조건;
+CiESS1=@SIGN(@SUM(SEG_ALL(J):outESS1(J)))*@MAX(SEG_ALL(J):Ts(J))*FESS1*CiuESS1;!CiESS1 설치비용=ESS용량(MWh)*MWh당 비용;
 COSTESS1=CiESS1;!ESS 순현재가치(NPV); !n 수명 ;
