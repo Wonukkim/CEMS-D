@@ -104,12 +104,12 @@ ELECO2=0.4517;!ton/MWh;
 !CHP 성능특성 모델링;
 FCHP1=43.2;!43.2MWe;
 nvCHP1E= @SMIN(((0.0005*FCHP1*1000)+23.773)/100,0.41); !정격발전효율계산식(정격발전량함수);
-!@FOR(SEG_ALL(J):@GIN(PLRCHP1(J)));
-@FOR(SEG_ALL(J):@SEMIC(0.5,PLRCHP1(J),1)); !PLRCHP1s1t11 해당세그먼트 부분부하율(PLR);
+@FOR(SEG_ALL(J):@GIN(PLRCHP1(J)));
+@FOR(SEG_ALL(J):@SEMIC(10,PLRCHP1(J),20)); !PLRCHP1s1t11 해당세그먼트 부분부하율(PLR);
 !@FOR(SEG_ALL(J):@BIN(etaCHP1(J))); !etaCHP1(J)=1);!etaCHP1s1t1 해당세그먼트 ON/OFF(0 OR 1);
 !@FOR(SEG_ALL(J):vCHP1E(J)=etaCHP1(J)*PLRCHP1(J)*FCHP1);!FCHP1 열병합 정격발전용량(MW),입력변수; !vCHP1s1t1 해당세그먼트 발전부하(MW);
-@FOR(SEG_ALL(J):vCHP1E(J)=PLRCHP1(J)*FCHP1);!FCHP1 열병합 정격발전용량(MW),입력변수; !vCHP1s1t1 해당세그먼트 발전부하(MW);
-@FOR(SEG_ALL(J):FPLRCHP1E(J)=@SMIN((0.21529+2.561463*(PLRCHP1(J))-3.24613*(PLRCHP1(J))^2+1.497306*(PLRCHP1(J))^3),1)); !부분부하계수(부분부하율함수);
+@FOR(SEG_ALL(J):vCHP1E(J)=PLRCHP1(J)/20*FCHP1);!FCHP1 열병합 정격발전용량(MW),입력변수; !vCHP1s1t1 해당세그먼트 발전부하(MW);
+@FOR(SEG_ALL(J):FPLRCHP1E(J)=@SMIN((0.21529+2.561463*(PLRCHP1(J)/20)-3.24613*(PLRCHP1(J)/20)^2+1.497306*(PLRCHP1(J)/20)^3),1)); !부분부하계수(부분부하율함수);
 @FOR(SEG_ALL(J):uCHP1(J)=vCHP1E(J)/(nvCHP1E*FPLRCHP1E(J))); !uCHP1s1t1 해당세그먼트 가스소비(MW) =발전부하/(정격발전효율*부분부하계수);
 @FOR(SEG_ALL(J):vCHP1H(J)=uCHP1(J)*0.85-vCHP1E(J)); !vCHP1Hs1t1 해당세그먼트 열출력(MW) =가스소비(MW)*전체효율(0.85) - 발전부하;
 @FOR(SEG_ALL(J):FUELCHP1(J)=Ts(J)*uCHP1(J)); !1년간 열병합 에너지사용량(MWh);
@@ -119,11 +119,11 @@ COSTCHP1=CiCHP1+(@SUM(SEG_ALL(J):Cgas*FUELCHP1(J)))*@FPA(r,n); !1년간 열병�
 
 !HOB 성능특성 모델링;
 FHOB1=497;!497MW;
-!@FOR(SEG_ALL(J):@GIN(PLRHOB1(J)));
-@FOR(SEG_ALL(J):@SEMIC(0.5,PLRHOB1(J),1)); !PLRHOB1s1t11 해당세그먼트 부분부하율(PLR);
+@FOR(SEG_ALL(J):@GIN(PLRHOB1(J)));
+@FOR(SEG_ALL(J):@SEMIC(10,PLRHOB1(J),20)); !PLRHOB1s1t11 해당세그먼트 부분부하율(PLR);
 !@FOR(SEG_ALL(J):@BIN(etaHOB1(J))); !etaHOB1s1t1 해당세그먼트 ON/OFF(0 OR 1) etaHOB1(J)=1);
 !@FOR(SEG_ALL(J):vHOB1(J)=etaHOB1(J)*PLRHOB1(J)*FHOB1);!FHOB1H HOB 정격온열용량(MW),입력변수;!vHOB1Hs1t1 해당세그먼트 온열부하(MW);
-@FOR(SEG_ALL(J):vHOB1(J)=PLRHOB1(J)*FHOB1);!FHOB1H HOB 정격온열용량(MW),입력변수;!vHOB1Hs1t1 해당세그먼트 온열부하(MW);
+@FOR(SEG_ALL(J):vHOB1(J)=PLRHOB1(J)/20*FHOB1);!FHOB1H HOB 정격온열용량(MW),입력변수;!vHOB1Hs1t1 해당세그먼트 온열부하(MW);
 @FOR(SEG_ALL(J):uHOB1(J)=vHOB1(J)/0.8);!uFC1s1t1 해당세그먼트 가스소비(MW) =열부하/효율(0.8);
 @FOR(SEG_ALL(J):FUELHOB1(J)=Ts(J)*uHOB1(J)); !1년간 HOB 에너지사용량(MWh);
 @FOR(SEG_ALL(J):GENHOB1H(J)=Ts(J)*vHOB1(J)); !1년간 HOB 온열생산량(MWh);
@@ -136,13 +136,13 @@ COSTHOB1=CiHOB1+(@SUM(SEG_ALL(J):Cgas*FUELHOB1(J)))*@FPA(r,n); !1년간 HOB 순�
 
 !연료전지 성능특성 모델링;
 !FFC1=58.8;!58.8MW 경기그린에너지;
-!@FOR(SEG_ALL(J):@GIN(PLRFC1(J)));
-@FOR(SEG_ALL(J):@SEMIC(0.5,PLRFC1(J),1)); !PLRFC1s1t11 해당세그먼트 부분부하율(PLR);
+@FOR(SEG_ALL(J):@GIN(PLRFC1(J)));
+@FOR(SEG_ALL(J):@SEMIC(10,PLRFC1(J),20)); !PLRFC1s1t11 해당세그먼트 부분부하율(PLR);
 !@FOR(SEG_ALL(J):@BIN(etaFC1(J))); !etaFC1(J)=1);!etaFC1s1t1 해당세그먼트 ON/OFF(0 OR 1);
 !@FOR(SEG_ALL(J):vFC1E(J)=etaFC1(J)*PLRFC1(J)*FFC1);!FFC1 FC 정격발전용량(MW),입력변수; !vFC1s1t1 해당세그먼트 발전부하(MW);
 @FOR(SEG_ALL(J):vFC1E(J)=PLRFC1(J)*FFC1);!FFC1 FC 정격발전용량(MW),입력변수; !vFC1s1t1 해당세그먼트 발전부하(MW);
-@FOR(SEG_ALL(J):nvFC1E(J)=@SMIN(-0.0543*PLRFC1(J) + 0.4666,0.43));!발전효율계산식(부분부하율함수);
-@FOR(SEG_ALL(J):nvFC1A(J)=@SMIN(0.5125*PLRFC1(J) + 0.4458,0.9));!전체효율계산식(발전+열;!부분부하율함수);
+@FOR(SEG_ALL(J):nvFC1E(J)=@SMIN(-0.0543*PLRFC1(J)/20 + 0.4666,0.43));!발전효율계산식(부분부하율함수);
+@FOR(SEG_ALL(J):nvFC1A(J)=@SMIN(0.5125*PLRFC1(J)/20 + 0.4458,0.9));!전체효율계산식(발전+열;!부분부하율함수);
 @FOR(SEG_ALL(J):uFC1(J)=vFC1E(J)/nvFC1E); !uFC1s1t1 해당세그먼트 가스소비(MW) =발전부하/발전효율;
 @FOR(SEG_ALL(J):vFC1H(J)=uFC1(J)*nvFC1A(J)-vFC1E(J)); !uFC1(J) 해당세그먼트 열출력(MW) =발전부하/전체효율 - 발전부하;
 @FOR(SEG_ALL(J):FUELFC1(J)=Ts(J)*uFC1(J)); !1년간 FC 에너지사용량(MWh);
@@ -156,13 +156,13 @@ CiFC1= @SIGN(FCFUELSUM)*FFC1*1000*CiuFC;!CiFC1 설치비용 = 정격발전용량
 COSTFC1=CiFC1+FCFUELSUM*@FPA(r,n); !1년간 FC 순현재가치(NPV)vChw*GENFC1H(J)-vCelecFC*GENFC1E(J)+; !n 수명 ; !n년동안 매년 에너지사용량,발전량,열생산량이 동일하다고 가정;!(1-(1+r)^(-n))*(1+r)/r;
 
 !GSHP 성능특성 모델링;
-!@FOR(SEG_ALL(J):@GIN(PLRGSHP1(J)));
-@FOR(SEG_ALL(J):@SEMIC(0.5,PLRGSHP1(J),1)); !PLRGSHP1s1t11 해당세그먼트 부분부하율(PLR);
+@FOR(SEG_ALL(J):@GIN(PLRGSHP1(J)));
+@FOR(SEG_ALL(J):@SEMIC(10,PLRGSHP1(J),20)); !PLRGSHP1s1t11 해당세그먼트 부분부하율(PLR);
 !@FOR(SEG_ALL(J):@BIN(etaGSHP1H(J))); !etaGSHP1s1t1 해당세그먼트 난방ON/OFF(0 OR 1);
 !@FOR(SEG_ALL(J):@BIN(zetaGSHP1C(J))); !zetaGSHP1s1t1 해당세그먼트 냉방ON/OFF정보(0 OR 1);
 !@FOR(SEG_ALL(J):etaGSHP1C(J)=zetaGSHP1C(J)*(1-etaGSHP1H(J)));!해당세그먼트 냉방ON/OFF(0 OR 1);!냉난방 둘중하나;
 !@FOR(SEG_ALL(J):vGSHP1H(J)=etaGSHP1H(J)*PLRGSHP1(J)*FGSHP1H);!FGSHP1H 지열히트펌프 정격온열용량(MW),입력변수;!FGSHP1C 지열히트펌프 정격냉열용량(MW),입력변수;!vGSHP1H(J) 해당세그먼트 온열부하(MW);
-@FOR(SEG_ALL(J):vGSHP1H(J)=PLRGSHP1(J)*FGSHP1H);!FGSHP1H 지열히트펌프 정격온열용량(MW),입력변수;!FGSHP1C 지열히트펌프 정격냉열용량(MW),입력변수;!vGSHP1H(J) 해당세그먼트 온열부하(MW);
+@FOR(SEG_ALL(J):vGSHP1H(J)=PLRGSHP1(J)/20*FGSHP1H);!FGSHP1H 지열히트펌프 정격온열용량(MW),입력변수;!FGSHP1C 지열히트펌프 정격냉열용량(MW),입력변수;!vGSHP1H(J) 해당세그먼트 온열부하(MW);
 !@FOR(SEG_ALL(J):vGSHP1C(J)=etaGSHP1C(J)*PLRGSHP1(J)*FGSHP1C);!vGSHP1H(J) 해당세그먼트 냉열부하(MW);
 @FOR(SEG_ALL(J):uGSHP1(J)=vGSHP1H(J)/3.7);!uFC1s1t1 해당세그먼트 전기소비(MW) =열부하/효율;!uGSHP1(J)=vGSHP1H(J)/3.7 + vGSHP1C(J)/4.11;
 @GIN(IFGSHPH1);
